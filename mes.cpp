@@ -15,6 +15,9 @@ class Interval{
         }
 };
 
+const Interval omega(0,2);      // Przedział w którym szukamy rozwiązania
+const int integralAcc = 50000;       // Dokładność obliczania całki
+
 class EiFunction{     // y(x) = a*x + b
     private:
         int i;
@@ -35,16 +38,13 @@ class EiFunction{     // y(x) = a*x + b
         }
 };
 
-const Interval omega(0,2);      // Przedział w którym szukamy funkcji
-const int integralAcc = 50000;       // Dokładność obliczania całki
-
 int k(double x){
     if(x >= 0 && x <= 1)    return 1;
     if(x > 1 && x <= 2) return 2;
     return 0;
 }
 
-double calculateIntegral(EiFunction u, EiFunction v){       // Metoda kwadratów
+double calculateIntegral(EiFunction u, EiFunction v){       // Metoda prostokątów
     double score = 0;
     double h = (omega.to - omega.from)/(double) integralAcc;
     double x;
@@ -58,6 +58,18 @@ double calculateIntegral(EiFunction u, EiFunction v){       // Metoda kwadratów
 
     return score;
 }
+
+// double calculateIntegral(EiFunction u, EiFunction v){
+//     double x[2] = {-1/sqrt(3), 1/sqrt(3)};
+//     double w[2] = {2.0, 1.0};
+//     double score = 0;
+
+//     for(int i = 0; i < sizeof(x)/sizeof(x[0]); i++){
+//         score += w[i]*u.derivative(x[i] + 1)*v.derivative(x[i] + 1);
+//     }
+
+//     return score;
+// }
 
 double B(EiFunction u, EiFunction v){
     return calculateIntegral(u, v) - (u.normal(0)*v.normal(0));
@@ -109,7 +121,7 @@ double ** makingMatrix(int n){
 
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n; j++)
-            A[i][j] = calculateIntegral(EiFunction(i, n), EiFunction(j, n));
+            A[i][j] = B(EiFunction(i, n), EiFunction(j, n));
         
         A[i][n] = L(EiFunction(i, n));
     }
@@ -198,7 +210,6 @@ int main(){
     // cout << B(e1, e2) << endl;
     // cout << B(e2, e1) << endl;
     // cout << B(e2, e2) << endl;
-    cout << (double)0*(-1) << endl;
 
     calculatingSolution(n);
 
