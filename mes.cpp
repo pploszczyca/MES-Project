@@ -18,6 +18,8 @@ class Interval{
 const Interval omega(0,2);      // Przedział w którym szukamy rozwiązania
 const int integralAcc = 50000;       // Dokładność obliczania całki
 
+const double eps = 1e-12; // stała przybliżenia zera
+
 class EiFunction{     // y(x) = a*x + b 
     public:
         int i;
@@ -100,7 +102,7 @@ void delete2DMatrix(double **A, int n){
 void print2DMatrix(double **A, int n){
     for(int i = 0; i < n; i++){
         for(int j = 0; j < n+1; j++){
-            cout.width( 10 );
+            cout.width( 12 );
             cout.fill( ' ' );
             cout << A[i][j];
         }
@@ -132,7 +134,21 @@ double ** makingMatrix(int n){
 
 double *solve2DMatrix(double **A, int n){       // Na podstawie algorytmu eliminacji Gaussa
     double *sollution = new double[n];
+
+    for(int i = 0; i < n; i++)
+        sollution[i] = 0;
+
     double tmp;
+
+    for(int i = 0; i < n; i++){
+        for(int k = i+1; k < n; k++){
+            if(fabs(A[i][i]) <= fabs(A[k][i])){
+                for(int j = 0; j<=n; j++){
+                    swap(A[i][j], A[k][j]);
+                }
+            }
+        }
+    }
 
     for(int j = 0; j < n-1; j++){
         for(int i = j+1; i < n; i++){
@@ -142,6 +158,7 @@ double *solve2DMatrix(double **A, int n){       // Na podstawie algorytmu elimin
                 A[i][k] -= A[j][k]*tmp;
             }
         }
+
     }
 
     for(int i = n-1; i >= 0; i--){
@@ -167,6 +184,7 @@ double calculateXFromSollutionTab(double *sollution, int n, double x){
 
 void makeFileToPlot(double *sollution, int n){
     ofstream file("data.txt");
+    file << "plot '-'\n";
 
     double h = (omega.to - omega.from)/(double) integralAcc;
     double x;
