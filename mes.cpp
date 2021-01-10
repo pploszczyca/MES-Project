@@ -18,12 +18,11 @@ class Interval{
 const Interval omega(0,2);      // Przedział w którym szukamy rozwiązania
 const int integralAcc = 50000;       // Dokładność obliczania całki
 
-class EiFunction{     // y(x) = a*x + b
-    private:
+class EiFunction{     // y(x) = a*x + b 
+    public:
         int i;
         int n;
 
-    public:
         EiFunction(int i, int n){
             this->i = i;
             this->n = n;
@@ -44,32 +43,34 @@ int k(double x){
     return 0;
 }
 
-double calculateIntegral(EiFunction u, EiFunction v){       // Metoda prostokątów
-    double score = 0;
-    double h = (omega.to - omega.from)/(double) integralAcc;
-    double x;
-
-    for(int i = 1; i <= integralAcc; i++){
-        x = omega.from + i*h;
-        // score += k(x)*u.derivative(x)*v.derivative(x)*h;
-        score += u.derivative(x)*v.derivative(x)*h;
-
+void setABforIntegral(double &a, double &b, EiFunction u, EiFunction v){        // ustawia przedziały całkowania
+    if(u.i == v.i){
+        a = max(omega.from, 2.0*(u.i-1)/u.n);
+        b = min(omega.to, 2.0*(u.i+1)/u.n);
+    } else if (u.i + 1 == v.i){     // u.i <= v.i
+        a = 2.0*(v.i-1)/v.n;
+        b = 2.0*v.i/v.n;
+    } else {
+        a = 0;
+        b = 0;
     }
+}     
 
-    return score;
+double calculateIntegral(EiFunction u, EiFunction v){
+    double x = 5.77350269189625764507e-01;
+    double w = 1.0;
+
+    double a, b;
+    setABforIntegral(a,b,u,v);
+
+    if(a == 0 && b == 0)    return 0;
+
+    double c = 0.5 * (b-a);
+    double d = 0.5 * (b+a);
+    double dum = c * x;
+
+    return c * w * ( (u.derivative(d-dum)*v.derivative(d-dum)) + (u.derivative(d+dum)*v.derivative(d+dum)) );
 }
-
-// double calculateIntegral(EiFunction u, EiFunction v){
-//     double x[2] = {-1/sqrt(3), 1/sqrt(3)};
-//     double w[2] = {2.0, 1.0};
-//     double score = 0;
-
-//     for(int i = 0; i < sizeof(x)/sizeof(x[0]); i++){
-//         score += w[i]*u.derivative(x[i] + 1)*v.derivative(x[i] + 1);
-//     }
-
-//     return score;
-// }
 
 double B(EiFunction u, EiFunction v){
     return calculateIntegral(u, v) - (u.normal(0)*v.normal(0));
@@ -109,7 +110,7 @@ void print2DMatrix(double **A, int n){
 
 void print1DMatrix(double *tab, int n){
     for(int i = 0; i < n; i++){
-            cout.width( 10 );
+            cout.width( 8 );
             cout.fill( ' ' );
             cout << tab[i];
     }
@@ -120,8 +121,8 @@ double ** makingMatrix(int n){
     double **A = initialize2DMatrix(n);
 
     for(int i = 0; i < n; i++){
-        for(int j = 0; j < n; j++)
-            A[i][j] = B(EiFunction(i, n), EiFunction(j, n));
+        for(int j = i; j < n; j++)
+            A[j][i] = A[i][j] = B(EiFunction(i, n), EiFunction(j, n));
         
         A[i][n] = L(EiFunction(i, n));
     }
@@ -199,17 +200,10 @@ void calculatingSolution(int n){
     delete2DMatrix(A,n);
 }
 
-
 int main(){
     int n;
     cout << "Podaj ilość funkcji bazowych: ";
     cin >> n;
-    // EiFunction e1(1, n);
-    // EiFunction e2(2, n);
-    // cout << B(e1, e1) << endl;
-    // cout << B(e1, e2) << endl;
-    // cout << B(e2, e1) << endl;
-    // cout << B(e2, e2) << endl;
 
     calculatingSolution(n);
 
