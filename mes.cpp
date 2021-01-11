@@ -16,13 +16,13 @@ class Interval{
 };
 
 const Interval omega(0,2);      // Przedział w którym szukamy rozwiązania
-const int integralAcc = 50000;       // Dokładność obliczania całki
+const int pointsAcc = 50000;       // Ilość punktów do wyrysowania wykresu
 
 const double eps = 1e-12; // stała przybliżenia zera
 
 class EiFunction{     // y(x) = a*x + b 
     public:
-        int i;
+        int i;      // numer funkcji
         int n;
 
         EiFunction(int i, int n){
@@ -56,22 +56,28 @@ void setABforIntegral(double &a, double &b, EiFunction u, EiFunction v){        
         a = 0;
         b = 0;
     }
-}     
+}
 
-double calculateIntegral(EiFunction u, EiFunction v){
+// Oblicza wartość całki dla funkcji u i v dla przedziału [a, b]
+double calculateIntegralFromAtoB(EiFunction u, EiFunction v, double a, double b){
     double x = 5.77350269189625764507e-01;
     double w = 1.0;
-
-    double a, b;
-    setABforIntegral(a,b,u,v);
-
-    if(a == 0 && b == 0)    return 0;
 
     double c = 0.5 * (b-a);
     double d = 0.5 * (b+a);
     double dum = c * x;
 
-    return c * w * ( (u.derivative(d-dum)*v.derivative(d-dum)) + (u.derivative(d+dum)*v.derivative(d+dum)) );
+    return c * w * ( (k(d-dum)*u.derivative(d-dum)*v.derivative(d-dum)) + (k(d+dum)*u.derivative(d+dum)*v.derivative(d+dum)) );
+}
+
+// Oblicza wartość całki dla funkcji u, v
+double calculateIntegral(EiFunction u, EiFunction v){
+    double a, b;
+    setABforIntegral(a,b,u,v);
+
+    if(a == 0 && b == 0)    return 0;
+    else if(a <= 1.0 && b > 1.0 )    return calculateIntegralFromAtoB(u,v,a,1.0) + calculateIntegralFromAtoB(u,v,1.0,b);
+    else return calculateIntegralFromAtoB(u,v,a,b);
 }
 
 double B(EiFunction u, EiFunction v){
@@ -81,7 +87,6 @@ double B(EiFunction u, EiFunction v){
 double L(EiFunction v){
     return -20*v.normal(0);
 }
-
 
 double **initialize2DMatrix(int n){
     double **A = new double*[n];
@@ -119,6 +124,7 @@ void print1DMatrix(double *tab, int n){
     cout << endl;
 }
 
+// Tworzy i wypełnia macierz
 double ** makingMatrix(int n){
     double **A = initialize2DMatrix(n);
 
@@ -132,7 +138,8 @@ double ** makingMatrix(int n){
     return A;
 }
 
-double *solve2DMatrix(double **A, int n){       // Na podstawie algorytmu eliminacji Gaussa
+// Oblicza rozwiązania na podstawie algorytmu eliminacji Gaussa
+double *solve2DMatrix(double **A, int n){
     double *sollution = new double[n];
 
     for(int i = 0; i < n; i++)
@@ -172,6 +179,7 @@ double *solve2DMatrix(double **A, int n){       // Na podstawie algorytmu elimin
     return sollution;
 }
 
+// Oblicza wartość x na podstawie wyliczonego rozwiązania
 double calculateXFromSollutionTab(double *sollution, int n, double x){
     double score = 0;
 
@@ -182,14 +190,15 @@ double calculateXFromSollutionTab(double *sollution, int n, double x){
     return score;
 }
 
+// Tworzy plik z punktami do wyrysowania przez gnuplot
 void makeFileToPlot(double *sollution, int n){
     ofstream file("data.txt");
     file << "plot '-'\n";
 
-    double h = (omega.to - omega.from)/(double) integralAcc;
+    double h = (omega.to - omega.from)/(double) pointsAcc;
     double x;
 
-    for(int i = 1; i <= integralAcc; i++){
+    for(int i = 1; i <= pointsAcc; i++){
         x = omega.from + i*h;
         file.width(10);
         file.fill(' ');
@@ -224,6 +233,7 @@ int main(){
     cin >> n;
 
     calculatingSolution(n);
+    system("gnuplot -p < \"data.txt\"");
 
     return 0;
 }
